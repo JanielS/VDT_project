@@ -1,7 +1,8 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { ChevronDown, ChevronRight, Lock, PencilLine } from 'lucide-react';
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { DecimalInput } from '../DecimalInput/DecimalInput';
 import { useSimulationStore } from '../../store/simulationStore';
 import type { CalculatedIndicator } from '../../types/indicator';
 import { formatNumber } from '../../utils/formatNumber';
@@ -15,7 +16,6 @@ type IndicatorNodeData = {
 
 function IndicatorNodeComponent({ data }: NodeProps) {
   const { indicator, isExpanded, isSelected, isPathHighlighted } = data as IndicatorNodeData;
-  const [draft, setDraft] = useState(String(indicator.values.whatIf ?? indicator.values.actual));
   const interactionMode = useSimulationStore((state) => state.interactionMode);
   const toggleExpanded = useSimulationStore((state) => state.toggleExpanded);
   const selectIndicator = useSimulationStore((state) => state.selectIndicator);
@@ -24,11 +24,6 @@ function IndicatorNodeComponent({ data }: NodeProps) {
   const isInput = indicator.type === 'input';
   const isEditable = isInput && interactionMode === 'select';
   const isChanged = isInput && (indicator.values.whatIf ?? indicator.values.actual) !== indicator.values.actual;
-
-  const commit = () => {
-    const parsed = Number(draft.replace(',', '.'));
-    if (!Number.isNaN(parsed)) updateWhatIf(indicator.id, parsed);
-  };
 
   return (
     <motion.div
@@ -75,14 +70,10 @@ function IndicatorNodeComponent({ data }: NodeProps) {
         <b>{formatNumber(indicator.values.actual)}</b>
         <span>What If</span>
         {isEditable ? (
-          <input
+          <DecimalInput
             className={isChanged ? 'changed' : ''}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            onBlur={commit}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') event.currentTarget.blur();
-            }}
+            value={indicator.values.whatIf ?? indicator.values.actual}
+            onCommit={(value) => updateWhatIf(indicator.id, value)}
             onClick={(event) => event.stopPropagation()}
           />
         ) : (
