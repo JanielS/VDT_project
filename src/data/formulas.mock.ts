@@ -70,6 +70,14 @@ export const rawFormulas: FormulaDefinition[] = [
     description: 'Produtividade da via úmida ajustada pela eficiência e horas calendário.',
   },
   {
+    id: 'wet_feed_mass_reference_formula',
+    label: 'Massa de Alimentação Via Úmida (referência)',
+    expression: 'wet_feed_mass',
+    dependencies: ['wet_feed_mass'],
+    status: 'validated',
+    description: 'Referência visual terminal para ramos de consumo específico que dependem da massa de alimentação via úmida.',
+  },
+  {
     id: 'wet_route_efficiency_formula',
     label: 'Eficiência da Via Úmida',
     expression: 'df_wet_route * ut_wet_route',
