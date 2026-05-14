@@ -43,7 +43,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   indicators: recalculate(initialIndicators),
   expandedIds: initialExpandedIds,
   selectedId: 'ebitda',
-  sidePanelOpen: true,
+  sidePanelOpen: false,
   searchTerm: '',
   interactionMode: 'select',
   themeMode: getInitialTheme(),
