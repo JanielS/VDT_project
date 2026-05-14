@@ -32,6 +32,12 @@ export function calculateIndicators(indicators: Indicator[], formulas: FormulaDe
       const formula = indicator.formulaId ? formulasById.get(indicator.formulaId) : undefined;
       const isGenericSum = indicator.formulaId === 'sum_children_formula';
       const childIds = indicator.children ?? [];
+      const dependencyIds = formula?.dependencies.length ? formula.dependencies : childIds;
+
+      for (const dependencyId of dependencyIds) {
+        calculate(dependencyId);
+      }
+
       const calculateScenarioValue = (scenario: Scenario) => {
         const read = (childId: string) => scenarioValueOf(byId.get(childId) ?? indicator, scenario);
 
@@ -44,7 +50,6 @@ export function calculateIndicators(indicators: Indicator[], formulas: FormulaDe
         }
 
         if (formula?.expression) {
-          const dependencyIds = formula.dependencies.length ? formula.dependencies : childIds;
           const context = Object.fromEntries(dependencyIds.map((dependencyId) => [dependencyId, read(dependencyId)]));
           return evaluateExpression(formula.expression, context);
         }
