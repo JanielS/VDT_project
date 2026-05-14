@@ -2,12 +2,18 @@ import { Hand, MousePointer2, PanelLeftClose, PanelLeftOpen, RotateCcw } from 'l
 import { useSimulationStore } from '../../store/simulationStore';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 
-export function Toolbar() {
+type ToolbarProps = {
+  isTemporaryNavigationMode?: boolean;
+};
+
+export function Toolbar({ isTemporaryNavigationMode = false }: ToolbarProps) {
   const interactionMode = useSimulationStore((state) => state.interactionMode);
   const setInteractionMode = useSimulationStore((state) => state.setInteractionMode);
   const resetSimulation = useSimulationStore((state) => state.resetSimulation);
   const sidePanelOpen = useSimulationStore((state) => state.sidePanelOpen);
   const setSidePanelOpen = useSimulationStore((state) => state.setSidePanelOpen);
+  const isNavigationActive = interactionMode === 'pan' || isTemporaryNavigationMode;
+  const isSelectionActive = interactionMode === 'select' && !isTemporaryNavigationMode;
 
   return (
     <div className="toolbar">
@@ -22,7 +28,7 @@ export function Toolbar() {
       <ThemeToggle />
       <span className="toolbar-divider" />
       <button
-        className={interactionMode === 'pan' ? 'icon-button active' : 'icon-button'}
+        className={isNavigationActive ? 'icon-button active' : 'icon-button'}
         title="Modo navegacao"
         onClick={() => setInteractionMode('pan')}
         type="button"
@@ -30,7 +36,7 @@ export function Toolbar() {
         <Hand size={18} />
       </button>
       <button
-        className={interactionMode === 'select' ? 'icon-button active' : 'icon-button'}
+        className={isSelectionActive ? 'icon-button active' : 'icon-button'}
         title="Modo selecao e edicao"
         onClick={() => setInteractionMode('select')}
         type="button"
