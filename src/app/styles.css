@@ -224,6 +224,10 @@ button {
   text-align: center;
 }
 
+.tour-card.center .tour-close {
+  pointer-events: auto;
+}
+
 .tour-card.center p {
   padding-right: 0;
 }

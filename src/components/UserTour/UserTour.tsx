@@ -120,6 +120,7 @@ type Highlight = {
 
 const padding = 8;
 const totalTourSteps = steps.filter((step) => step.countInTour !== false).length;
+const tourSeenStorageKey = 'vdt-user-tour-seen';
 
 export function UserTour() {
   const [active, setActive] = useState(false);
@@ -168,6 +169,7 @@ export function UserTour() {
   }, []);
 
   const startTour = useCallback(() => {
+    localStorage.setItem(tourSeenStorageKey, 'true');
     resetSimulation();
     setInteractionMode('select');
     setSearchTerm('');
@@ -184,8 +186,7 @@ export function UserTour() {
   }, [startTour]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('tour') !== '1') return;
+    if (localStorage.getItem(tourSeenStorageKey) === 'true') return;
 
     const timeout = window.setTimeout(startTour, 250);
     return () => window.clearTimeout(timeout);
