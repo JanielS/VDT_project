@@ -127,6 +127,7 @@ export function UserTour() {
   const [highlight, setHighlight] = useState<Highlight>();
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const middleDragStartX = useRef<number | null>(null);
+  const middleDragAdvanced = useRef(false);
   const indicators = useSimulationStore((state) => state.indicators);
   const expandedIds = useSimulationStore((state) => state.expandedIds);
   const sidePanelOpen = useSimulationStore((state) => state.sidePanelOpen);
@@ -261,31 +262,53 @@ export function UserTour() {
   useEffect(() => {
     if (!active || current?.id !== 'middle-drag') return;
 
-    const startMiddleDrag = (event: MouseEvent) => {
-      if (event.button === 1) middleDragStartX.current = event.clientX;
-    };
-    const trackMiddleDrag = (event: MouseEvent) => {
+    middleDragAdvanced.current = false;
+
+    const advanceAfterLeftDrag = (clientX: number) => {
       const startX = middleDragStartX.current;
-      if (startX === null || (event.buttons & 4) === 0) return;
-      if (event.clientX <= startX - 42) {
+      if (startX === null || middleDragAdvanced.current) return;
+      if (clientX <= startX - 24) {
+        middleDragAdvanced.current = true;
         middleDragStartX.current = null;
         goNext();
       }
     };
-    const stopMiddleDrag = () => {
+
+    const startMiddleDrag = (event: MouseEvent | PointerEvent) => {
+      if (event.button === 1) {
+        middleDragStartX.current = event.clientX;
+        event.preventDefault();
+      }
+    };
+    const trackMiddleDrag = (event: MouseEvent | PointerEvent) => {
+      advanceAfterLeftDrag(event.clientX);
+    };
+    const stopMiddleDrag = (event?: MouseEvent | PointerEvent) => {
+      if (event) advanceAfterLeftDrag(event.clientX);
+      middleDragStartX.current = null;
+    };
+    const cancelMiddleDrag = () => {
       middleDragStartX.current = null;
     };
 
     document.addEventListener('mousedown', startMiddleDrag, true);
     document.addEventListener('mousemove', trackMiddleDrag, true);
     document.addEventListener('mouseup', stopMiddleDrag, true);
-    window.addEventListener('blur', stopMiddleDrag);
+    document.addEventListener('pointerdown', startMiddleDrag, true);
+    document.addEventListener('pointermove', trackMiddleDrag, true);
+    document.addEventListener('pointerup', stopMiddleDrag, true);
+    document.addEventListener('pointercancel', stopMiddleDrag, true);
+    window.addEventListener('blur', cancelMiddleDrag);
 
     return () => {
       document.removeEventListener('mousedown', startMiddleDrag, true);
       document.removeEventListener('mousemove', trackMiddleDrag, true);
       document.removeEventListener('mouseup', stopMiddleDrag, true);
-      window.removeEventListener('blur', stopMiddleDrag);
+      document.removeEventListener('pointerdown', startMiddleDrag, true);
+      document.removeEventListener('pointermove', trackMiddleDrag, true);
+      document.removeEventListener('pointerup', stopMiddleDrag, true);
+      document.removeEventListener('pointercancel', stopMiddleDrag, true);
+      window.removeEventListener('blur', cancelMiddleDrag);
     };
   }, [active, current, goNext]);
 
