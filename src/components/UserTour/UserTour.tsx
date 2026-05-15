@@ -6,6 +6,7 @@ type TourStep = {
   id: string;
   selector: string;
   text: string;
+  illustration?: 'middle-drag';
   placement?: 'left' | 'right' | 'bottom';
   nextLabel?: string;
 };
@@ -20,7 +21,14 @@ const steps: TourStep[] = [
   {
     id: 'expand-net-revenue',
     selector: '[data-tour="expand-net_revenue"]',
-    text: 'Expanda Receita Liquida. Use a mao ou a bolinha do mouse para acompanhar a arvore.',
+    text: 'Expanda Receita Liquida.',
+  },
+  {
+    id: 'middle-drag',
+    selector: '[data-tour="canvas-navigation"]',
+    text: 'Clique na bolinha do mouse e arraste para navegar pela arvore.',
+    illustration: 'middle-drag',
+    nextLabel: 'Continuar',
   },
   {
     id: 'expand-gross-revenue',
@@ -288,12 +296,26 @@ export function UserTour() {
           {stepIndex + 1} / {steps.length}
         </span>
         <p>{current.text}</p>
+        {current.illustration === 'middle-drag' ? <MiddleDragCue /> : null}
         {current.nextLabel ? (
           <button className="tour-next" onClick={goNext} type="button">
             {current.nextLabel}
           </button>
         ) : null}
       </section>
+    </div>
+  );
+}
+
+function MiddleDragCue() {
+  return (
+    <div className="tour-drag-cue" aria-hidden="true">
+      <div className="tour-mouse">
+        <span />
+      </div>
+      <div className="tour-drag-line">
+        <i />
+      </div>
     </div>
   );
 }

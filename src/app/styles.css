@@ -267,6 +267,107 @@ button {
   font-weight: 650;
 }
 
+.tour-drag-cue {
+  width: 100%;
+  height: 62px;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.tour-mouse {
+  width: 34px;
+  height: 48px;
+  position: relative;
+  border: 2px solid var(--vdt-green);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--vdt-card) 86%, var(--vdt-green));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vdt-green) 18%, transparent);
+  animation: tour-mouse-drag 1600ms ease-in-out infinite;
+}
+
+.tour-mouse::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 2px;
+  height: 16px;
+  background: var(--vdt-border);
+  transform: translateX(-50%);
+}
+
+.tour-mouse span {
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  width: 7px;
+  height: 11px;
+  border-radius: 5px;
+  background: var(--vdt-gold);
+  transform: translateX(-50%);
+  animation: tour-wheel-press 1600ms ease-in-out infinite;
+}
+
+.tour-drag-line {
+  height: 2px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--vdt-border) 80%, transparent);
+}
+
+.tour-drag-line i {
+  width: 34px;
+  height: 2px;
+  position: absolute;
+  left: 0;
+  border-radius: inherit;
+  background: var(--vdt-green);
+  animation: tour-drag-line 1600ms ease-in-out infinite;
+}
+
+@keyframes tour-mouse-drag {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  45%,
+  70% {
+    transform: translateX(34px);
+  }
+}
+
+@keyframes tour-wheel-press {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+
+  18%,
+  72% {
+    transform: translate(-50%, 4px);
+  }
+}
+
+@keyframes tour-drag-line {
+  0% {
+    transform: translateX(-34px);
+  }
+
+  50%,
+  78% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 .indicator-node {
   width: 244px;
   min-height: 96px;

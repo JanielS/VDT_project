@@ -59,6 +59,7 @@ export function VdtCanvas() {
   return (
     <main
       className="canvas-shell"
+      data-tour="canvas-navigation"
       onAuxClick={(event) => {
         if (event.button === 1) event.preventDefault();
       }}
