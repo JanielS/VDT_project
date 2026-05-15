@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { VdtCanvas } from '../components/Canvas/VdtCanvas';
 import { FormulaDetails } from '../components/FormulaDetails/FormulaDetails';
 import { SidePanel } from '../components/SidePanel/SidePanel';
+import { UserTour } from '../components/UserTour/UserTour';
 import { useSimulationStore } from '../store/simulationStore';
 import { applyThemeTokens, darkTheme, lightTheme } from '../themes/theme';
 import { formatNumber } from '../utils/formatNumber';
@@ -32,7 +33,7 @@ export function App() {
             <span>Value Driver Tree</span>
           </div>
         </div>
-        <div className="header-kpis">
+        <div className="header-kpis" data-tour="ebitda-kpi">
           <span>EBITDA What If</span>
           <strong>{formatNumber(ebitdaWhatIf, 'kUSD')}</strong>
           <small className={ebitdaDelta >= 0 ? 'positive' : 'negative'}>
@@ -52,6 +53,7 @@ export function App() {
         <VdtCanvas />
         <FormulaDetails />
       </div>
+      <UserTour />
     </div>
   );
 }

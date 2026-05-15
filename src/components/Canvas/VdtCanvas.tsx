@@ -72,7 +72,7 @@ export function VdtCanvas() {
         if (event.button === 1) setIsMiddleButtonPanning(false);
       }}
     >
-      <Toolbar isTemporaryNavigationMode={isTemporaryNavigationMode} />
+      <Toolbar isTemporaryNavigationMode={isTemporaryNavigationMode} onStartTour={() => window.dispatchEvent(new Event('vdt:start-tour'))} />
       <ReactFlow
         nodes={nodes}
         edges={edges}

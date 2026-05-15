@@ -183,6 +183,90 @@ button {
   background: var(--vdt-selected);
 }
 
+.user-tour {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.tour-spotlight {
+  position: fixed;
+  border: 2px solid var(--vdt-green);
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 9999px rgb(0 0 0 / 34%),
+    0 0 0 5px color-mix(in srgb, var(--vdt-green) 18%, transparent),
+    0 18px 45px rgb(0 0 0 / 24%);
+  pointer-events: none;
+  transition:
+    left 120ms ease,
+    top 120ms ease,
+    width 120ms ease,
+    height 120ms ease;
+}
+
+.tour-card {
+  position: fixed;
+  display: grid;
+  gap: 8px;
+  padding: 12px 12px 12px 14px;
+  border: 1px solid var(--vdt-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--vdt-card) 97%, var(--vdt-green));
+  color: var(--vdt-text);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 24%);
+  pointer-events: auto;
+}
+
+.tour-card span {
+  color: var(--vdt-green);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.tour-card p {
+  margin: 0;
+  padding-right: 22px;
+  color: var(--vdt-text);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tour-close {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--vdt-muted);
+  cursor: pointer;
+}
+
+.tour-close:hover {
+  background: var(--vdt-selected);
+  color: var(--vdt-green);
+}
+
+.tour-next {
+  justify-self: start;
+  border: 1px solid var(--vdt-green);
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: var(--vdt-green);
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+}
+
 .indicator-node {
   width: 244px;
   min-height: 96px;
