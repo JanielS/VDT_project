@@ -127,6 +127,8 @@ export function UserTour() {
   const [highlight, setHighlight] = useState<Highlight>();
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const middleDragStartX = useRef<number | null>(null);
+  const middleDragStartViewport = useRef<{ x: number; y: number } | null>(null);
+  const middleDragFrame = useRef<number | null>(null);
   const middleDragAdvanced = useRef(false);
   const indicators = useSimulationStore((state) => state.indicators);
   const expandedIds = useSimulationStore((state) => state.expandedIds);
@@ -264,31 +266,47 @@ export function UserTour() {
 
     middleDragAdvanced.current = false;
 
-    const advanceAfterLeftDrag = (clientX: number) => {
-      const startX = middleDragStartX.current;
-      if (startX === null || middleDragAdvanced.current) return;
-      if (clientX <= startX - 24) {
+    const advanceAfterViewportMoves = () => {
+      const startViewport = middleDragStartViewport.current;
+      const currentViewport = getReactFlowViewportPosition();
+      if (!startViewport || !currentViewport || middleDragAdvanced.current) return;
+
+      const deltaX = currentViewport.x - startViewport.x;
+      const deltaY = currentViewport.y - startViewport.y;
+      if (deltaX <= -18 || Math.abs(deltaX) + Math.abs(deltaY) >= 28) {
         middleDragAdvanced.current = true;
         middleDragStartX.current = null;
+        middleDragStartViewport.current = null;
         goNext();
+      }
+    };
+
+    const watchViewportMovement = () => {
+      advanceAfterViewportMoves();
+      if (!middleDragAdvanced.current && middleDragStartViewport.current) {
+        middleDragFrame.current = window.requestAnimationFrame(watchViewportMovement);
       }
     };
 
     const startMiddleDrag = (event: MouseEvent | PointerEvent) => {
       if (event.button === 1) {
         middleDragStartX.current = event.clientX;
-        event.preventDefault();
+        middleDragStartViewport.current = getReactFlowViewportPosition();
+        if (middleDragFrame.current !== null) window.cancelAnimationFrame(middleDragFrame.current);
+        middleDragFrame.current = window.requestAnimationFrame(watchViewportMovement);
       }
     };
-    const trackMiddleDrag = (event: MouseEvent | PointerEvent) => {
-      advanceAfterLeftDrag(event.clientX);
+    const trackMiddleDrag = () => {
+      advanceAfterViewportMoves();
     };
-    const stopMiddleDrag = (event?: MouseEvent | PointerEvent) => {
-      if (event) advanceAfterLeftDrag(event.clientX);
+    const stopMiddleDrag = () => {
+      advanceAfterViewportMoves();
       middleDragStartX.current = null;
+      middleDragStartViewport.current = null;
     };
     const cancelMiddleDrag = () => {
       middleDragStartX.current = null;
+      middleDragStartViewport.current = null;
     };
 
     document.addEventListener('mousedown', startMiddleDrag, true);
@@ -309,6 +327,8 @@ export function UserTour() {
       document.removeEventListener('pointerup', stopMiddleDrag, true);
       document.removeEventListener('pointercancel', stopMiddleDrag, true);
       window.removeEventListener('blur', cancelMiddleDrag);
+      if (middleDragFrame.current !== null) window.cancelAnimationFrame(middleDragFrame.current);
+      middleDragFrame.current = null;
     };
   }, [active, current, goNext]);
 
@@ -381,6 +401,30 @@ function MiddleDragCue() {
       </div>
     </div>
   );
+}
+
+function getReactFlowViewportPosition() {
+  const viewport = document.querySelector<HTMLElement>('.react-flow__viewport');
+  const transform = viewport?.style.transform;
+  if (!transform) return null;
+
+  const translate = transform.match(/translate\((-?\d+(?:\.\d+)?)px,\s*(-?\d+(?:\.\d+)?)px\)/);
+  if (translate) {
+    return {
+      x: Number(translate[1]),
+      y: Number(translate[2]),
+    };
+  }
+
+  const matrix = transform.match(/matrix\([^,]+,\s*[^,]+,\s*[^,]+,\s*[^,]+,\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\)/);
+  if (matrix) {
+    return {
+      x: Number(matrix[1]),
+      y: Number(matrix[2]),
+    };
+  }
+
+  return null;
 }
 
 function getTooltipStyle(highlight: Highlight, placement: TourStep['placement']): CSSProperties {

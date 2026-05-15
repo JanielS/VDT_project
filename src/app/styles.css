@@ -220,6 +220,7 @@ button {
 }
 
 .tour-card.center {
+  pointer-events: none;
   text-align: center;
 }
 
