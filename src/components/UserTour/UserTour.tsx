@@ -1,13 +1,14 @@
 import { X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useSimulationStore } from '../../store/simulationStore';
 
 type TourStep = {
+  countInTour?: boolean;
   id: string;
   selector: string;
   text: string;
   illustration?: 'middle-drag';
-  placement?: 'left' | 'right' | 'bottom';
+  placement?: 'left' | 'right' | 'bottom' | 'center';
   nextLabel?: string;
 };
 
@@ -24,11 +25,12 @@ const steps: TourStep[] = [
     text: 'Expanda Receita Liquida.',
   },
   {
+    countInTour: false,
     id: 'middle-drag',
     selector: '[data-tour="canvas-navigation"]',
-    text: 'Clique na bolinha do mouse e arraste para navegar pela arvore.',
+    text: 'Clique na bolinha do mouse e arraste para a esquerda.',
     illustration: 'middle-drag',
-    nextLabel: 'Continuar',
+    placement: 'center',
   },
   {
     id: 'expand-gross-revenue',
@@ -117,12 +119,14 @@ type Highlight = {
 };
 
 const padding = 8;
+const totalTourSteps = steps.filter((step) => step.countInTour !== false).length;
 
 export function UserTour() {
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [highlight, setHighlight] = useState<Highlight>();
   const [target, setTarget] = useState<HTMLElement | null>(null);
+  const middleDragStartX = useRef<number | null>(null);
   const indicators = useSimulationStore((state) => state.indicators);
   const expandedIds = useSimulationStore((state) => state.expandedIds);
   const sidePanelOpen = useSimulationStore((state) => state.sidePanelOpen);
@@ -255,6 +259,37 @@ export function UserTour() {
   }, [active, changedInputs, current, expandedIds, goNext, searchTerm, sidePanelOpen, themeMode]);
 
   useEffect(() => {
+    if (!active || current?.id !== 'middle-drag') return;
+
+    const startMiddleDrag = (event: MouseEvent) => {
+      if (event.button === 1) middleDragStartX.current = event.clientX;
+    };
+    const trackMiddleDrag = (event: MouseEvent) => {
+      const startX = middleDragStartX.current;
+      if (startX === null || (event.buttons & 4) === 0) return;
+      if (event.clientX <= startX - 42) {
+        middleDragStartX.current = null;
+        goNext();
+      }
+    };
+    const stopMiddleDrag = () => {
+      middleDragStartX.current = null;
+    };
+
+    document.addEventListener('mousedown', startMiddleDrag, true);
+    document.addEventListener('mousemove', trackMiddleDrag, true);
+    document.addEventListener('mouseup', stopMiddleDrag, true);
+    window.addEventListener('blur', stopMiddleDrag);
+
+    return () => {
+      document.removeEventListener('mousedown', startMiddleDrag, true);
+      document.removeEventListener('mousemove', trackMiddleDrag, true);
+      document.removeEventListener('mouseup', stopMiddleDrag, true);
+      window.removeEventListener('blur', stopMiddleDrag);
+    };
+  }, [active, current, goNext]);
+
+  useEffect(() => {
     if (!active || !current) return;
 
     const onClick = (event: MouseEvent) => {
@@ -284,6 +319,7 @@ export function UserTour() {
   if (!active || !current || !highlight) return null;
 
   const tooltipStyle = getTooltipStyle(highlight, current.placement);
+  const stepNumber = getVisibleStepNumber(stepIndex);
 
   return (
     <div className="user-tour" aria-live="polite">
@@ -293,7 +329,7 @@ export function UserTour() {
           <X size={14} />
         </button>
         <span>
-          {stepIndex + 1} / {steps.length}
+          {stepNumber} / {totalTourSteps}
         </span>
         <p>{current.text}</p>
         {current.illustration === 'middle-drag' ? <MiddleDragCue /> : null}
@@ -307,14 +343,18 @@ export function UserTour() {
   );
 }
 
+function getVisibleStepNumber(stepIndex: number) {
+  return steps.slice(0, stepIndex + 1).filter((step) => step.countInTour !== false).length;
+}
+
 function MiddleDragCue() {
   return (
     <div className="tour-drag-cue" aria-hidden="true">
-      <div className="tour-mouse">
-        <span />
-      </div>
       <div className="tour-drag-line">
         <i />
+      </div>
+      <div className="tour-mouse">
+        <span />
       </div>
     </div>
   );
@@ -340,6 +380,14 @@ function getTooltipStyle(highlight: Highlight, placement: TourStep['placement'])
     return {
       left: clamp(highlight.left + highlight.width + gap, 14, viewportWidth - width - 14),
       top: clamp(highlight.top, 14, viewportHeight - 150),
+      width,
+    };
+  }
+
+  if (placement === 'center') {
+    return {
+      left: clamp(viewportWidth / 2 - width / 2, 14, viewportWidth - width - 14),
+      top: clamp(viewportHeight / 2 - 80, 14, viewportHeight - 170),
       width,
     };
   }

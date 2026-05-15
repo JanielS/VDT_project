@@ -219,6 +219,14 @@ button {
   pointer-events: auto;
 }
 
+.tour-card.center {
+  text-align: center;
+}
+
+.tour-card.center p {
+  padding-right: 0;
+}
+
 .tour-card span {
   color: var(--vdt-green);
   font-size: 10px;
@@ -271,7 +279,7 @@ button {
   width: 100%;
   height: 62px;
   display: grid;
-  grid-template-columns: 42px 1fr;
+  grid-template-columns: 1fr 42px;
   align-items: center;
   gap: 12px;
   margin-top: 2px;
@@ -323,7 +331,7 @@ button {
   width: 34px;
   height: 2px;
   position: absolute;
-  left: 0;
+  right: 0;
   border-radius: inherit;
   background: var(--vdt-green);
   animation: tour-drag-line 1600ms ease-in-out infinite;
@@ -332,12 +340,12 @@ button {
 @keyframes tour-mouse-drag {
   0%,
   100% {
-    transform: translateX(0);
+    transform: translateX(34px);
   }
 
   45%,
   70% {
-    transform: translateX(34px);
+    transform: translateX(0);
   }
 }
 
@@ -355,16 +363,16 @@ button {
 
 @keyframes tour-drag-line {
   0% {
-    transform: translateX(-34px);
+    transform: translateX(34px);
   }
 
   50%,
   78% {
-    transform: translateX(100%);
+    transform: translateX(-100%);
   }
 
   100% {
-    transform: translateX(100%);
+    transform: translateX(-100%);
   }
 }
 
