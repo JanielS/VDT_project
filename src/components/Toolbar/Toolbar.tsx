@@ -1,12 +1,13 @@
-import { Hand, MousePointer2, PanelLeftClose, PanelLeftOpen, RotateCcw } from 'lucide-react';
+import { CircleHelp, Hand, MousePointer2, PanelLeftClose, PanelLeftOpen, RotateCcw } from 'lucide-react';
 import { useSimulationStore } from '../../store/simulationStore';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 
 type ToolbarProps = {
   isTemporaryNavigationMode?: boolean;
+  onStartTour?: () => void;
 };
 
-export function Toolbar({ isTemporaryNavigationMode = false }: ToolbarProps) {
+export function Toolbar({ isTemporaryNavigationMode = false, onStartTour }: ToolbarProps) {
   const interactionMode = useSimulationStore((state) => state.interactionMode);
   const setInteractionMode = useSimulationStore((state) => state.setInteractionMode);
   const resetSimulation = useSimulationStore((state) => state.resetSimulation);
@@ -19,11 +20,15 @@ export function Toolbar({ isTemporaryNavigationMode = false }: ToolbarProps) {
     <div className="toolbar">
       <button
         className="icon-button"
+        data-tour="panel-toggle"
         title={sidePanelOpen ? 'Recolher painel' : 'Abrir painel'}
         onClick={() => setSidePanelOpen(!sidePanelOpen)}
         type="button"
       >
         {sidePanelOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+      </button>
+      <button className="icon-button" title="Guia do usuario" onClick={onStartTour} type="button">
+        <CircleHelp size={18} />
       </button>
       <ThemeToggle />
       <span className="toolbar-divider" />
@@ -43,7 +48,7 @@ export function Toolbar({ isTemporaryNavigationMode = false }: ToolbarProps) {
       >
         <MousePointer2 size={18} />
       </button>
-      <button className="icon-button" title="Resetar simulacao" onClick={resetSimulation} type="button">
+      <button className="icon-button" data-tour="reset-simulation" title="Resetar simulacao" onClick={resetSimulation} type="button">
         <RotateCcw size={18} />
       </button>
     </div>

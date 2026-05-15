@@ -27,6 +27,8 @@ function IndicatorNodeComponent({ data }: NodeProps) {
 
   return (
     <motion.div
+      data-indicator-id={indicator.id}
+      data-tour={`node-${indicator.id}`}
       className={[
         'indicator-node',
         isInput ? 'input-node' : 'formula-node',
@@ -43,6 +45,7 @@ function IndicatorNodeComponent({ data }: NodeProps) {
       <div className="node-header">
         <button
           className="expand-button"
+          data-tour={`expand-${indicator.id}`}
           disabled={!canExpand}
           title={isExpanded ? 'Recolher' : 'Expandir'}
           onClick={(event) => {
@@ -72,6 +75,7 @@ function IndicatorNodeComponent({ data }: NodeProps) {
         {isEditable ? (
           <DecimalInput
             className={isChanged ? 'changed' : ''}
+            dataTour={`node-whatif-${indicator.id}`}
             value={indicator.values.whatIf ?? indicator.values.actual}
             onCommit={(value) => updateWhatIf(indicator.id, value)}
             onClick={(event) => event.stopPropagation()}

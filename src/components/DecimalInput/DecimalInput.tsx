@@ -3,12 +3,13 @@ import { formatDecimalInput, parseDecimalInput } from '../../utils/decimalNumber
 
 type DecimalInputProps = {
   className?: string;
+  dataTour?: string;
   value: number | undefined;
   onCommit: (value: number | undefined) => void;
   onClick?: MouseEventHandler<HTMLInputElement>;
 };
 
-export function DecimalInput({ className, value, onCommit, onClick }: DecimalInputProps) {
+export function DecimalInput({ className, dataTour, value, onCommit, onClick }: DecimalInputProps) {
   const [draft, setDraft] = useState(formatDecimalInput(value));
   const [isFocused, setIsFocused] = useState(false);
 
@@ -32,6 +33,7 @@ export function DecimalInput({ className, value, onCommit, onClick }: DecimalInp
   return (
     <input
       className={className}
+      data-tour={dataTour}
       inputMode="decimal"
       value={draft}
       onChange={(event) => setDraft(event.target.value)}

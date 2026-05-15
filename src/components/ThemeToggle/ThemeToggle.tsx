@@ -9,6 +9,7 @@ export function ThemeToggle() {
   return (
     <button
       className="icon-button"
+      data-tour="theme-toggle"
       title={isDark ? 'Usar tema claro' : 'Usar tema escuro'}
       onClick={() => setThemeMode(isDark ? 'light' : 'dark')}
       type="button"
