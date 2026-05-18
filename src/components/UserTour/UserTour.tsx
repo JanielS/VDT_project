@@ -131,6 +131,7 @@ export function UserTour() {
   const middleDragStartViewport = useRef<{ x: number; y: number } | null>(null);
   const middleDragFrame = useRef<number | null>(null);
   const middleDragAdvanced = useRef(false);
+  const themeBeforeTour = useRef<'light' | 'dark'>('light');
   const indicators = useSimulationStore((state) => state.indicators);
   const expandedIds = useSimulationStore((state) => state.expandedIds);
   const sidePanelOpen = useSimulationStore((state) => state.sidePanelOpen);
@@ -157,19 +158,33 @@ export function UserTour() {
     };
   }, [indicators]);
 
-  const goNext = useCallback(() => {
-    setStepIndex((index) => {
-      if (index >= steps.length - 1) {
-        setActive(false);
-        return 0;
-      }
+  const finishTour = useCallback(() => {
+    resetSimulation();
+    setInteractionMode('select');
+    setSearchTerm('');
+    setSidePanelOpen(false);
+    setThemeMode(themeBeforeTour.current);
+    selectIndicator('ebitda');
+    setActive(false);
+    setStepIndex(0);
 
-      return index + 1;
-    });
-  }, []);
+    window.setTimeout(() => {
+      document.querySelector<HTMLButtonElement>('.react-flow__controls-fitview')?.click();
+    }, 120);
+  }, [resetSimulation, selectIndicator, setInteractionMode, setSearchTerm, setSidePanelOpen, setThemeMode]);
+
+  const goNext = useCallback(() => {
+    if (current?.id === steps[steps.length - 1]?.id) {
+      finishTour();
+      return;
+    }
+
+    setStepIndex((index) => index + 1);
+  }, [current, finishTour]);
 
   const startTour = useCallback(() => {
     localStorage.setItem(tourSeenStorageKey, 'true');
+    themeBeforeTour.current = themeMode;
     resetSimulation();
     setInteractionMode('select');
     setSearchTerm('');
@@ -178,7 +193,7 @@ export function UserTour() {
     selectIndicator('ebitda');
     setStepIndex(0);
     setActive(true);
-  }, [resetSimulation, selectIndicator, setInteractionMode, setSearchTerm, setSidePanelOpen, setThemeMode]);
+  }, [resetSimulation, selectIndicator, setInteractionMode, setSearchTerm, setSidePanelOpen, setThemeMode, themeMode]);
 
   useEffect(() => {
     window.addEventListener('vdt:start-tour', startTour);
@@ -257,10 +272,10 @@ export function UserTour() {
     if (current.id === 'edit-hmp' && changedInputs.hmp) goNext();
     if (current.id === 'close-panel' && !sidePanelOpen) goNext();
     if (current.id === 'dark-theme' && themeMode === 'dark') {
-      const timeout = window.setTimeout(() => setActive(false), 700);
+      const timeout = window.setTimeout(finishTour, 700);
       return () => window.clearTimeout(timeout);
     }
-  }, [active, changedInputs, current, expandedIds, goNext, searchTerm, sidePanelOpen, themeMode]);
+  }, [active, changedInputs, current, expandedIds, finishTour, goNext, searchTerm, sidePanelOpen, themeMode]);
 
   useEffect(() => {
     if (!active || current?.id !== 'middle-drag') return;
