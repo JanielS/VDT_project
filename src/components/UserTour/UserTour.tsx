@@ -271,10 +271,6 @@ export function UserTour() {
     if (current.id === 'search-hmp' && searchTerm.trim().toLowerCase() === 'hmp') goNext();
     if (current.id === 'edit-hmp' && changedInputs.hmp) goNext();
     if (current.id === 'close-panel' && !sidePanelOpen) goNext();
-    if (current.id === 'dark-theme' && themeMode === 'dark') {
-      const timeout = window.setTimeout(finishTour, 700);
-      return () => window.clearTimeout(timeout);
-    }
   }, [active, changedInputs, current, expandedIds, finishTour, goNext, searchTerm, sidePanelOpen, themeMode]);
 
   useEffect(() => {
@@ -379,6 +375,8 @@ export function UserTour() {
 
   const tooltipStyle = getTooltipStyle(highlight, current.placement);
   const stepNumber = getVisibleStepNumber(stepIndex);
+  const isFinalStepReady = current.id === 'dark-theme' && themeMode === 'dark';
+  const actionLabel = isFinalStepReady ? "Let's go!" : current.nextLabel;
 
   return (
     <div className="user-tour" aria-live="polite">
@@ -392,9 +390,9 @@ export function UserTour() {
         </span>
         <p>{current.text}</p>
         {current.illustration === 'middle-drag' ? <MiddleDragCue /> : null}
-        {current.nextLabel ? (
+        {actionLabel ? (
           <button className="tour-next" onClick={goNext} type="button">
-            {current.nextLabel}
+            {actionLabel}
           </button>
         ) : null}
       </section>
