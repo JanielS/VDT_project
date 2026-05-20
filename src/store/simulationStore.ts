@@ -7,6 +7,7 @@ import type { CalculatedIndicator, Indicator } from '../types/indicator';
 
 type InteractionMode = 'pan' | 'select';
 type ThemeMode = 'light' | 'dark';
+type PlanScenario = 'budget' | 'outlook';
 
 const initialIndicators: Indicator[] = indicatorsMock;
 const initialExpandedIds = ['ebitda'];
@@ -26,6 +27,7 @@ type SimulationStore = {
   toggleExpanded: (id: string) => void;
   selectIndicator: (id?: string) => void;
   updateWhatIf: (id: string, value?: number) => void;
+  applyPlanToWhatIf: (scenario: PlanScenario) => void;
   resetSimulation: () => void;
   setSidePanelOpen: (sidePanelOpen: boolean) => void;
   setSearchTerm: (searchTerm: string) => void;
@@ -68,6 +70,25 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   },
   updateWhatIf: (id, value) => {
     const updated = updateInputWhatIf(get().baseIndicators, id, value);
+    const calculated = recalculate(updated);
+    set({
+      baseIndicators: updated,
+      indicators: calculated,
+      selectedPath: getPathToRoot(calculated, get().selectedId),
+    });
+  },
+  applyPlanToWhatIf: (scenario) => {
+    const updated = get().baseIndicators.map((indicator) => {
+      if (indicator.type !== 'input') return indicator;
+
+      return {
+        ...indicator,
+        values: {
+          ...indicator.values,
+          whatIf: indicator.values[scenario],
+        },
+      };
+    });
     const calculated = recalculate(updated);
     set({
       baseIndicators: updated,

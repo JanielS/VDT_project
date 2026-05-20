@@ -9,6 +9,7 @@ export function SidePanel() {
   const searchTerm = useSimulationStore((state) => state.searchTerm);
   const setSearchTerm = useSimulationStore((state) => state.setSearchTerm);
   const updateWhatIf = useSimulationStore((state) => state.updateWhatIf);
+  const applyPlanToWhatIf = useSimulationStore((state) => state.applyPlanToWhatIf);
   const selectIndicator = useSimulationStore((state) => state.selectIndicator);
 
   const inputs = indicators
@@ -28,6 +29,14 @@ export function SidePanel() {
         <Search size={16} />
         <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Pesquisar input" />
       </label>
+      <div className="plan-actions" aria-label="Preencher What If com plano">
+        <button title="Ajuste com os valores do plano" type="button" onClick={() => applyPlanToWhatIf('budget')}>
+          Budget
+        </button>
+        <button title="Ajuste com os valores do plano" type="button" onClick={() => applyPlanToWhatIf('outlook')}>
+          Outlook
+        </button>
+      </div>
       <div className="input-list" data-tour="panel-list">
         {inputs.map((indicator) => {
           const current = indicator.values.whatIf ?? indicator.values.actual;

@@ -580,8 +580,33 @@ button {
   color: var(--vdt-text);
 }
 
+.plan-actions {
+  display: flex;
+  gap: 8px;
+  margin: 0 10px 10px;
+}
+
+.plan-actions button {
+  flex: 0 0 96px;
+  width: 96px;
+  min-width: 0;
+  border: 1px solid var(--vdt-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--vdt-card) 92%, var(--vdt-green));
+  color: var(--vdt-green);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.plan-actions button:hover {
+  border-color: var(--vdt-green);
+  background: var(--vdt-selected);
+}
+
 .input-list {
-  height: calc(100vh - 154px);
+  height: calc(100vh - 204px);
   overflow: auto;
   padding: 0 10px 12px;
 }
