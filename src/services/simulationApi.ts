@@ -10,8 +10,7 @@ type SimulationResponse = {
 };
 
 const API_BASE_URL =
-  import.meta.env.VITE_SIMULATION_API_URL ??
-  'https://vdt-calculation-engine-janiels-projects-64eb2efd.vercel.app';
+  (import.meta.env.VITE_SIMULATION_API_URL ?? '').replace(/\/$/, '');
 
 async function postSimulation(path: string, body: unknown, signal?: AbortSignal): Promise<SimulationResponse> {
   const response = await fetch(`${API_BASE_URL}/api/simulation${path}`, {

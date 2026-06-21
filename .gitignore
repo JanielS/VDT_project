@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .vite/
+.vercel/
 .env
 .env.*
 !.env.example
@@ -13,5 +14,14 @@ pnpm-debug.log*
 *.tsbuildinfo
 __pycache__/
 .pytest_cache/
+.python-version
+backend/.vercel/
+backend/.pytest_cache/
+backend/__pycache__/
+backend/build/
+backend/*.egg-info/
+backend/*.pyc
 .DS_Store
 Thumbs.db
+
+.vercel

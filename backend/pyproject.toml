@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vdt-calculation-engine"
+version = "0.1.0"
+description = "Private VDT calculation backend"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.8",
+]
+
+[tool.setuptools]
+py-modules = [
+  "main",
+  "models",
+  "calculation_engine",
+  "data_source",
+  "formulas",
+  "formula_evaluator",
+  "indicators",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
