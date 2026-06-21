@@ -11,5 +11,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 *.tsbuildinfo
+__pycache__/
+.pytest_cache/
 .DS_Store
 Thumbs.db

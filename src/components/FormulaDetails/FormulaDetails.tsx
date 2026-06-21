@@ -1,17 +1,17 @@
 import { AlertTriangle, FunctionSquare, PencilLine, X } from 'lucide-react';
-import { formulasMock } from '../../data/formulas.mock';
 import { useSimulationStore } from '../../store/simulationStore';
 import { formatNumber } from '../../utils/formatNumber';
 
 export function FormulaDetails() {
   const selectedId = useSimulationStore((state) => state.selectedId);
   const indicators = useSimulationStore((state) => state.indicators);
+  const formulas = useSimulationStore((state) => state.formulas);
   const selectIndicator = useSimulationStore((state) => state.selectIndicator);
   const selected = indicators.find((indicator) => indicator.id === selectedId);
 
   if (!selected) return null;
 
-  const formula = formulasMock.find((item) => item.id === selected.formulaId);
+  const formula = formulas.find((item) => item.id === selected.formulaId);
   const dependencies = (formula?.dependencies.length ? formula.dependencies : selected.children ?? [])
     .map((id) => indicators.find((indicator) => indicator.id === id))
     .filter(Boolean);

@@ -13,6 +13,7 @@ Aplicacao web interativa para simulacao de impacto operacional, comercial e fina
 - Zod
 - Framer Motion
 - Lucide React
+- O backend Python fica em um repositorio privado separado
 
 ## Como rodar
 
@@ -20,6 +21,10 @@ Aplicacao web interativa para simulacao de impacto operacional, comercial e fina
 npm install
 npm run dev
 ```
+
+O frontend usa `/api` como proxy local quando a API estiver em `http://127.0.0.1:8000`.
+Em producao, defina `VITE_SIMULATION_API_URL` caso a API esteja em outro host.
+O backend deve ser executado a partir do repositorio privado.
 
 ## Scripts
 
@@ -30,11 +35,11 @@ npm run test
 
 ## Estrutura
 
-- `src/data`: dados mockados de indicadores e formulas
-- `src/engine`: motor de calculo independente da interface
+- `src/engine`: utilitarios de grafo usados pela interface
 - `src/store`: estado global da simulacao
 - `src/components`: canvas, cards, toolbar, painel lateral e detalhes de formulas
 - `src/themes`: tokens de tema claro e escuro
+- `VITE_SIMULATION_API_URL`: URL da API de simulacao quando nao estiver no mesmo host
 
 ## Materiais de referencia
 

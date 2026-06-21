@@ -11,6 +11,9 @@ import './styles.css';
 
 export function App() {
   const themeMode = useSimulationStore((state) => state.themeMode);
+  const initializeSimulation = useSimulationStore((state) => state.initializeSimulation);
+  const isCalculating = useSimulationStore((state) => state.isCalculating);
+  const calculationError = useSimulationStore((state) => state.calculationError);
   const ebitda = useSimulationStore((state) => state.indicators.find((indicator) => indicator.id === 'ebitda'));
   const ebitdaActual = ebitda?.values.actual ?? 0;
   const ebitdaWhatIf = ebitda?.values.whatIf ?? ebitdaActual;
@@ -23,6 +26,10 @@ export function App() {
     document.documentElement.dataset.theme = themeMode;
   }, [themeMode]);
 
+  useEffect(() => {
+    void initializeSimulation();
+  }, [initializeSimulation]);
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -34,7 +41,7 @@ export function App() {
           </div>
         </div>
         <div className="header-kpis" data-tour="ebitda-kpi">
-          <span>EBITDA What If</span>
+          <span>{isCalculating ? 'Recalculando...' : calculationError ? 'Erro no motor Python' : 'EBITDA What If'}</span>
           <strong>{formatNumber(ebitdaWhatIf, 'kUSD')}</strong>
           <small className={ebitdaDelta >= 0 ? 'positive' : 'negative'}>
             {ebitdaDelta >= 0 ? '+' : ''}

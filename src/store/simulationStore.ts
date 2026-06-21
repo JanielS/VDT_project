@@ -1,20 +1,19 @@
 import { create } from 'zustand';
-import { formulasMock } from '../data/formulas.mock';
-import { indicatorsMock } from '../data/indicators.mock';
-import { calculateIndicators, updateInputWhatIf } from '../engine/calculationEngine';
 import { getPathToRoot } from '../engine/dependencyGraph';
+import { simulationApi } from '../services/simulationApi';
+import type { FormulaDefinition } from '../types/formula';
 import type { CalculatedIndicator, Indicator } from '../types/indicator';
 
 type InteractionMode = 'pan' | 'select';
 type ThemeMode = 'light' | 'dark';
 type PlanScenario = 'budget' | 'outlook';
 
-const initialIndicators: Indicator[] = indicatorsMock;
 const initialExpandedIds = ['ebitda'];
 
 type SimulationStore = {
   baseIndicators: Indicator[];
   indicators: CalculatedIndicator[];
+  formulas: FormulaDefinition[];
   expandedIds: string[];
   selectedId?: string;
   sidePanelOpen: boolean;
@@ -22,13 +21,16 @@ type SimulationStore = {
   interactionMode: InteractionMode;
   themeMode: ThemeMode;
   selectedPath: string[];
+  isCalculating: boolean;
+  calculationError?: string;
+  initializeSimulation: () => Promise<void>;
   setThemeMode: (themeMode: ThemeMode) => void;
   setInteractionMode: (interactionMode: InteractionMode) => void;
   toggleExpanded: (id: string) => void;
   selectIndicator: (id?: string) => void;
-  updateWhatIf: (id: string, value?: number) => void;
-  applyPlanToWhatIf: (scenario: PlanScenario) => void;
-  resetSimulation: () => void;
+  updateWhatIf: (id: string, value?: number) => Promise<void>;
+  applyPlanToWhatIf: (scenario: PlanScenario) => Promise<void>;
+  resetSimulation: () => Promise<void>;
   setSidePanelOpen: (sidePanelOpen: boolean) => void;
   setSearchTerm: (searchTerm: string) => void;
 };
@@ -38,11 +40,24 @@ const getInitialTheme = (): ThemeMode => {
   return localStorage.getItem('vdt-theme') === 'dark' ? 'dark' : 'light';
 };
 
-const recalculate = (indicators: Indicator[]) => calculateIndicators(indicators, formulasMock);
+let latestCalculationRequest = 0;
+let activeRequest: AbortController | undefined;
+
+const createRequest = () => {
+  latestCalculationRequest += 1;
+  activeRequest?.abort();
+  activeRequest = new AbortController();
+  return { requestId: latestCalculationRequest, signal: activeRequest.signal };
+};
+
+const isLatestRequest = (requestId: number) => requestId === latestCalculationRequest;
+
+const getErrorMessage = (error: unknown) => (error instanceof Error ? error.message : 'Falha ao recalcular a simulacao.');
 
 export const useSimulationStore = create<SimulationStore>((set, get) => ({
-  baseIndicators: initialIndicators,
-  indicators: recalculate(initialIndicators),
+  baseIndicators: [],
+  indicators: [],
+  formulas: [],
   expandedIds: initialExpandedIds,
   selectedId: 'ebitda',
   sidePanelOpen: false,
@@ -50,6 +65,27 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   interactionMode: 'select',
   themeMode: getInitialTheme(),
   selectedPath: ['ebitda'],
+  isCalculating: false,
+  calculationError: undefined,
+  initializeSimulation: async () => {
+    const { requestId, signal } = createRequest();
+    set({ isCalculating: true, calculationError: undefined });
+
+    try {
+      const response = await simulationApi.initial(signal);
+      if (!isLatestRequest(requestId)) return;
+      set({
+        baseIndicators: response.baseIndicators,
+        indicators: response.indicators,
+        formulas: response.formulas,
+        selectedPath: getPathToRoot(response.indicators, get().selectedId),
+        isCalculating: false,
+      });
+    } catch (error) {
+      if (signal.aborted || !isLatestRequest(requestId)) return;
+      set({ calculationError: getErrorMessage(error), isCalculating: false });
+    }
+  },
   setThemeMode: (themeMode) => {
     localStorage.setItem('vdt-theme', themeMode);
     set({ themeMode });
@@ -68,50 +104,64 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       selectedPath: getPathToRoot(indicators, id),
     });
   },
-  updateWhatIf: (id, value) => {
-    const updated = updateInputWhatIf(get().baseIndicators, id, value);
-    const calculated = recalculate(updated);
-    set({
-      baseIndicators: updated,
-      indicators: calculated,
-      selectedPath: getPathToRoot(calculated, get().selectedId),
-    });
-  },
-  applyPlanToWhatIf: (scenario) => {
-    const updated = get().baseIndicators.map((indicator) => {
-      if (indicator.type !== 'input') return indicator;
+  updateWhatIf: async (id, value) => {
+    const { requestId, signal } = createRequest();
+    set({ isCalculating: true, calculationError: undefined });
 
-      return {
-        ...indicator,
-        values: {
-          ...indicator.values,
-          whatIf: indicator.values[scenario],
-        },
-      };
-    });
-    const calculated = recalculate(updated);
-    set({
-      baseIndicators: updated,
-      indicators: calculated,
-      selectedPath: getPathToRoot(calculated, get().selectedId),
-    });
+    try {
+      const response = await simulationApi.updateInput(get().baseIndicators, id, value, signal);
+      if (!isLatestRequest(requestId)) return;
+      set({
+        baseIndicators: response.baseIndicators,
+        indicators: response.indicators,
+        formulas: response.formulas,
+        selectedPath: getPathToRoot(response.indicators, get().selectedId),
+        isCalculating: false,
+      });
+    } catch (error) {
+      if (signal.aborted || !isLatestRequest(requestId)) return;
+      set({ calculationError: getErrorMessage(error), isCalculating: false });
+    }
   },
-  resetSimulation: () => {
-    const reset = initialIndicators.map((indicator) => ({
-      ...indicator,
-      values: {
-        ...indicator.values,
-        whatIf: indicator.values.actual,
-      },
-    }));
-    const calculated = recalculate(reset);
-    set({
-      baseIndicators: reset,
-      indicators: calculated,
-      selectedId: 'ebitda',
-      selectedPath: ['ebitda'],
-      expandedIds: initialExpandedIds,
-    });
+  applyPlanToWhatIf: async (scenario) => {
+    const { requestId, signal } = createRequest();
+    set({ isCalculating: true, calculationError: undefined });
+
+    try {
+      const response = await simulationApi.applyPlan(get().baseIndicators, scenario, signal);
+      if (!isLatestRequest(requestId)) return;
+      set({
+        baseIndicators: response.baseIndicators,
+        indicators: response.indicators,
+        formulas: response.formulas,
+        selectedPath: getPathToRoot(response.indicators, get().selectedId),
+        isCalculating: false,
+      });
+    } catch (error) {
+      if (signal.aborted || !isLatestRequest(requestId)) return;
+      set({ calculationError: getErrorMessage(error), isCalculating: false });
+    }
+  },
+  resetSimulation: async () => {
+    const { requestId, signal } = createRequest();
+    set({ isCalculating: true, calculationError: undefined });
+
+    try {
+      const response = await simulationApi.reset(get().baseIndicators, signal);
+      if (!isLatestRequest(requestId)) return;
+      set({
+        baseIndicators: response.baseIndicators,
+        indicators: response.indicators,
+        formulas: response.formulas,
+        selectedId: 'ebitda',
+        selectedPath: ['ebitda'],
+        expandedIds: initialExpandedIds,
+        isCalculating: false,
+      });
+    } catch (error) {
+      if (signal.aborted || !isLatestRequest(requestId)) return;
+      set({ calculationError: getErrorMessage(error), isCalculating: false });
+    }
   },
   setSidePanelOpen: (sidePanelOpen) => set({ sidePanelOpen }),
   setSearchTerm: (searchTerm) => set({ searchTerm }),
