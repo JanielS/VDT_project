@@ -111,8 +111,15 @@ INDICATOR_STRUCTURES = [
         "children": [
             "wet_route_productivity",
             "wet_route_efficiency",
-            "wet_route_calendar_hours",
+            "wet_route_calendar_hours_ref_feed",
         ],
+    }),
+    IndicatorStructure(**{
+        "id": "wet_route_calendar_hours_ref_feed",
+        "label": "Horas Calendário (ref.)",
+        "type": "formula",
+        "unit": "h",
+        "formulaId": "wet_route_calendar_hours_reference_formula",
     }),
     IndicatorStructure(**{
         "id": "wet_route_efficiency",
@@ -128,9 +135,14 @@ INDICATOR_STRUCTURES = [
     IndicatorStructure(**{
         "id": "df_wet_route",
         "label": "DF Via Úmida",
-        "type": "input",
+        "type": "formula",
         "unit": "%",
-        "group": "Via Úmida",
+        "formulaId": "df_wet_route_formula",
+        "children": [
+            "wet_route_calendar_hours",
+            "hmp",
+            "hmnp",
+        ],
     }),
     IndicatorStructure(**{
         "id": "ut_wet_route",
@@ -139,10 +151,32 @@ INDICATOR_STRUCTURES = [
         "unit": "%",
         "formulaId": "ut_wet_route_formula",
         "children": [
-            "hmp",
-            "hmnp",
-            "stopped_hours",
+            "wet_route_calendar_hours_ref_ut",
+            "hmp_ref_ut",
+            "hmnp_ref_ut",
+            "hpo",
         ],
+    }),
+    IndicatorStructure(**{
+        "id": "wet_route_calendar_hours_ref_ut",
+        "label": "Horas Calendário (ref.)",
+        "type": "formula",
+        "unit": "h",
+        "formulaId": "wet_route_calendar_hours_reference_formula",
+    }),
+    IndicatorStructure(**{
+        "id": "hmp_ref_ut",
+        "label": "HMP (ref.)",
+        "type": "formula",
+        "unit": "h",
+        "formulaId": "hmp_reference_formula",
+    }),
+    IndicatorStructure(**{
+        "id": "hmnp_ref_ut",
+        "label": "HMNP (ref.)",
+        "type": "formula",
+        "unit": "h",
+        "formulaId": "hmnp_reference_formula",
     }),
     IndicatorStructure(**{
         "id": "hmp",
@@ -159,8 +193,8 @@ INDICATOR_STRUCTURES = [
         "group": "Via Úmida",
     }),
     IndicatorStructure(**{
-        "id": "stopped_hours",
-        "label": "Horas Paradas",
+        "id": "hpo",
+        "label": "HPO",
         "type": "input",
         "unit": "h",
         "group": "Via Úmida",

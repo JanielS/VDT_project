@@ -91,6 +91,36 @@ FORMULAS = [
         "description": "Referência visual terminal para ramos de consumo específico que dependem da massa de alimentação via úmida.",
     }),
     FormulaDefinition(**{
+        "id": "wet_route_calendar_hours_reference_formula",
+        "label": "Horas Calendário (referência)",
+        "expression": "wet_route_calendar_hours",
+        "dependencies": [
+            "wet_route_calendar_hours",
+        ],
+        "status": "validated",
+        "description": "Card referência que espelha as Horas Calendário oficiais.",
+    }),
+    FormulaDefinition(**{
+        "id": "hmp_reference_formula",
+        "label": "HMP (referência)",
+        "expression": "hmp",
+        "dependencies": [
+            "hmp",
+        ],
+        "status": "validated",
+        "description": "Card referência que espelha o HMP oficial.",
+    }),
+    FormulaDefinition(**{
+        "id": "hmnp_reference_formula",
+        "label": "HMNP (referência)",
+        "expression": "hmnp",
+        "dependencies": [
+            "hmnp",
+        ],
+        "status": "validated",
+        "description": "Card referência que espelha o HMNP oficial.",
+    }),
+    FormulaDefinition(**{
         "id": "wet_route_efficiency_formula",
         "label": "Eficiência da Via Úmida",
         "expression": "df_wet_route * ut_wet_route",
@@ -102,16 +132,29 @@ FORMULAS = [
         "description": "Eficiência composta por disponibilidade física e utilização.",
     }),
     FormulaDefinition(**{
-        "id": "ut_wet_route_formula",
-        "label": "UT Via Úmida",
-        "expression": "(hmp - hmnp - stopped_hours) / hmp",
+        "id": "df_wet_route_formula",
+        "label": "DF Via Úmida",
+        "expression": "(wet_route_calendar_hours - hmp - hmnp) / wet_route_calendar_hours",
         "dependencies": [
+            "wet_route_calendar_hours",
             "hmp",
             "hmnp",
-            "stopped_hours",
         ],
         "status": "validated",
-        "description": "Utilização operacional da via úmida considerando horas paradas.",
+        "description": "Disponibilidade física calculada como ((Horas Calendário - HMP - HMNP) / Horas Calendário).",
+    }),
+    FormulaDefinition(**{
+        "id": "ut_wet_route_formula",
+        "label": "UT Via Úmida",
+        "expression": "(wet_route_calendar_hours - hmp - hmnp - hpo) / (wet_route_calendar_hours - hmp - hmnp)",
+        "dependencies": [
+            "wet_route_calendar_hours",
+            "hmp",
+            "hmnp",
+            "hpo",
+        ],
+        "status": "validated",
+        "description": "Utilização operacional calculada como ((Horas Calendário - HMP - HMNP - HPO) / (Horas Calendário - HMP - HMNP)).",
     }),
     FormulaDefinition(**{
         "id": "gold_revenue_formula",

@@ -127,6 +127,67 @@ def test_official_backend_tree_recalculates_after_input_change() -> None:
     assert after_ebitda.values.whatIf != before_ebitda.values.whatIf
 
 
+def test_official_backend_tree_has_no_orphan_nodes() -> None:
+    indicators = build_default_indicators()
+    by_id = {indicator.id: indicator for indicator in indicators}
+    reachable: set[str] = set()
+
+    def visit(indicator_id: str) -> None:
+        if indicator_id in reachable:
+            return
+        reachable.add(indicator_id)
+        for child_id in by_id[indicator_id].children or []:
+            visit(child_id)
+
+    visit("ebitda")
+
+    assert reachable == set(by_id)
+
+
+def test_wet_route_df_uses_official_hour_children() -> None:
+    indicators = build_default_indicators()
+    df = next(indicator for indicator in indicators if indicator.id == "df_wet_route")
+
+    assert df.type == "formula"
+    assert df.children == ["wet_route_calendar_hours", "hmp", "hmnp"]
+
+
+def test_wet_route_ut_uses_reference_cards_and_hpo() -> None:
+    indicators = build_default_indicators()
+    ut = next(indicator for indicator in indicators if indicator.id == "ut_wet_route")
+    by_id = {indicator.id: indicator for indicator in indicators}
+
+    assert ut.children == ["wet_route_calendar_hours_ref_ut", "hmp_ref_ut", "hmnp_ref_ut", "hpo"]
+    assert by_id["wet_route_calendar_hours_ref_ut"].type == "formula"
+    assert by_id["hmp_ref_ut"].type == "formula"
+    assert by_id["hmnp_ref_ut"].type == "formula"
+    assert by_id["hpo"].label == "HPO"
+
+
+def test_wet_route_reference_cards_mirror_official_values() -> None:
+    indicators = build_default_indicators()
+    calculated = {indicator.id: indicator for indicator in recalculate_tree(indicators)}
+
+    assert calculated["wet_route_calendar_hours_ref_ut"].values == calculated["wet_route_calendar_hours"].values
+    assert calculated["wet_route_calendar_hours_ref_feed"].values == calculated["wet_route_calendar_hours"].values
+    assert calculated["hmp_ref_ut"].values == calculated["hmp"].values
+    assert calculated["hmnp_ref_ut"].values == calculated["hmnp"].values
+
+
+def test_wet_route_hour_inputs_respect_calendar_hour_constraint() -> None:
+    values_by_id = get_default_indicator_values()
+
+    for scenario in ("budget", "outlook", "actual"):
+        calendar_hours = getattr(values_by_id["wet_route_calendar_hours"], scenario)
+        unavailable_hours = (
+            getattr(values_by_id["hmp"], scenario)
+            + getattr(values_by_id["hmnp"], scenario)
+            + getattr(values_by_id["hpo"], scenario)
+        )
+
+        assert unavailable_hours < calendar_hours
+
+
 def test_formula_evaluator_rejects_unsupported_syntax() -> None:
     with pytest.raises(ValueError):
         evaluate_expression("__import__('os').system('echo nope')", {})
